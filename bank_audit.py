@@ -115,108 +115,70 @@ def display_transaction(transaction: Optional[Transaction], target_id: str):
     print("=" * 60)
 
 
-def display_performance(perf: Dict, data_size: int):
-    """Menampilkan hasil perbandingan performa"""
-    print("\n" + "=" * 60)
-    print("PERFORMANCE COMPARISON - LINEAR SEARCH")
-    print(f"Data Size: {data_size:,} transaksi")
-    print("=" * 60)
-    print(f"{'Metode':<15} {'Avg (ms)':<12} {'Min (ms)':<12} {'Max (ms)':<12}")
-    print("-" * 60)
-    print(f"{'Iteratif':<15} {perf['iterative_avg']:<12.6f} {perf['iterative_min']:<12.6f} {perf['iterative_max']:<12.6f}")
-    print(f"{'Rekursif':<15} {perf['recursive_avg']:<12.6f} {perf['recursive_min']:<12.6f} {perf['recursive_max']:<12.6f}")
-    print("-" * 60)
-    
-    diff = ((perf['recursive_avg'] - perf['iterative_avg']) / perf['iterative_avg']) * 100
-    if diff > 0:
-        print(f"→ Iteratif lebih cepat {abs(diff):.2f}% dari Rekursif")
-    else:
-        print(f"→ Rekursif lebih cepat {abs(diff):.2f}% dari Iteratif")
-    print("=" * 60)
+def display_performance_table(results: List[Dict]):
+    """Menampilkan tabel perbandingan performa dengan berbagai ukuran N"""
+    print("\n" + "+" + "-" * 58 + "+")
+    print("|" + " " * 16 + "PERFORMANCE COMPARISON" + " " * 20 + "|")
+    print("+" + "-" * 58 + "+")
+    print("|" + "-" * 58 + "|")
+    print(f"| {'n':>6} | {'Waktu Rekursif (ms)':>20} | {'Waktu Iteratif (ms)':>20} |")
+    print("|" + "-" * 58 + "|")
+    for r in results:
+        print(f"| {r['n']:>6} | {r['recursive_avg']:>20.6f} | {r['iterative_avg']:>20.6f} |")
+    print("|" + "-" * 58 + "|")
+    print("+" + "-" * 58 + "+")
 
 
-def plot_performance(perf: Dict, data_size: int):
-    """Membuat grafik perbandingan performa"""
-    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
-    fig.suptitle(f'Perbandingan Performa Linear Search: Iteratif vs Rekursif\n(Data: {data_size:,} transaksi)', 
-                 fontsize=14, fontweight='bold')
+def plot_performance_comparison(results: List[Dict]):
+    """Membuat grafik perbandingan performa Iteratif vs Rekursif"""
+    sizes = [r['n'] for r in results]
+    iterative_times = [r['iterative_avg'] for r in results]
+    recursive_times = [r['recursive_avg'] for r in results]
     
-    # Grafik 1: Bar Chart - Rata-rata waktu eksekusi
-    methods = ['Iteratif', 'Rekursif']
-    avg_times = [perf['iterative_avg'], perf['recursive_avg']]
-    colors = ['#2ecc71', '#e74c3c']
+    plt.figure(figsize=(10, 6))
+    plt.plot(sizes, iterative_times, 'o-', label='Iterative', color='blue', linewidth=2, markersize=8)
+    plt.plot(sizes, recursive_times, 's--', label='Recursive', color='green', linewidth=2, markersize=8)
     
-    bars = axes[0].bar(methods, avg_times, color=colors, edgecolor='black', linewidth=1.2)
-    axes[0].set_ylabel('Waktu (ms)', fontsize=11)
-    axes[0].set_title('Rata-rata Waktu Eksekusi', fontsize=12)
-    axes[0].set_ylim(0, max(avg_times) * 1.3)
-    
-    for bar, val in zip(bars, avg_times):
-        axes[0].text(bar.get_x() + bar.get_width()/2, bar.get_height() + max(avg_times)*0.02,
-                     f'{val:.4f} ms', ha='center', va='bottom', fontsize=10, fontweight='bold')
-    
-    # Grafik 2: Box Plot - Distribusi waktu
-    box_data = [perf['iterative_times'], perf['recursive_times']]
-    bp = axes[1].boxplot(box_data, tick_labels=methods, patch_artist=True)
-    for patch, color in zip(bp['boxes'], colors):
-        patch.set_facecolor(color)
-        patch.set_alpha(0.7)
-    axes[1].set_ylabel('Waktu (ms)', fontsize=11)
-    axes[1].set_title('Distribusi Waktu Eksekusi', fontsize=12)
-    
-    # Grafik 3: Line Plot - Perbandingan per iterasi
-    iterations = range(1, len(perf['iterative_times']) + 1)
-    axes[2].plot(iterations, perf['iterative_times'], label='Iteratif', color='#2ecc71', linewidth=1.5, alpha=0.8)
-    axes[2].plot(iterations, perf['recursive_times'], label='Rekursif', color='#e74c3c', linewidth=1.5, alpha=0.8)
-    axes[2].set_xlabel('Iterasi ke-', fontsize=11)
-    axes[2].set_ylabel('Waktu (ms)', fontsize=11)
-    axes[2].set_title('Waktu Eksekusi per Iterasi', fontsize=12)
-    axes[2].legend(loc='upper right')
-    axes[2].grid(True, alpha=0.3)
-    
+    plt.xlabel('Data Size', fontsize=12)
+    plt.ylabel('Execution Time (ms)', fontsize=12)
+    plt.title('Perbandingan Waktu Eksekusi Decision Tree: Iteratif vs Rekursif', fontsize=14, fontweight='bold')
+    plt.legend(title='Pendekatan', loc='upper left', fontsize=11)
+    plt.xticks(sizes)
+    plt.grid(True, alpha=0.3)
     plt.tight_layout()
     plt.savefig('performance_comparison.png', dpi=150, bbox_inches='tight')
     plt.show()
     print("\n→ Grafik disimpan sebagai 'performance_comparison.png'")
 
 
-def plot_scalability_test(sizes: List[int]):
-    """Test skalabilitas dengan berbagai ukuran data"""
+def run_performance_comparison(sizes: List[int]) -> List[Dict]:
+    """Menjalankan perbandingan performa dengan berbagai ukuran data"""
     import sys
     
     print("\n" + "=" * 60)
-    print("SCALABILITY TEST - Berbagai Ukuran Data")
+    print("PERFORMANCE COMPARISON - Berbagai Ukuran Data")
     print("=" * 60)
     
-    iterative_avgs = []
-    recursive_avgs = []
+    results = []
     
     # Set recursion limit untuk ukuran data terbesar
     sys.setrecursionlimit(max(sizes) + 500)
     
     for size in sizes:
-        print(f"Testing dengan {size:,} transaksi...", end=" ")
+        print(f"Testing dengan n = {size:,}...", end=" ")
         transactions = generate_transactions(size)
+        random.shuffle(transactions)
         target_id = transactions[-1].id  # Worst case: target di akhir
         
         perf = measure_performance(transactions, target_id, iterations=50)
-        iterative_avgs.append(perf['iterative_avg'])
-        recursive_avgs.append(perf['recursive_avg'])
+        results.append({
+            'n': size,
+            'iterative_avg': perf['iterative_avg'],
+            'recursive_avg': perf['recursive_avg']
+        })
         print("Done!")
     
-    # Plot scalability
-    plt.figure(figsize=(10, 6))
-    plt.plot(sizes, iterative_avgs, 'o-', label='Iteratif', color='#2ecc71', linewidth=2, markersize=8)
-    plt.plot(sizes, recursive_avgs, 's-', label='Rekursif', color='#e74c3c', linewidth=2, markersize=8)
-    plt.xlabel('Jumlah Transaksi', fontsize=12)
-    plt.ylabel('Waktu Rata-rata (ms)', fontsize=12)
-    plt.title('Scalability Test: Linear Search Iteratif vs Rekursif', fontsize=14, fontweight='bold')
-    plt.legend(fontsize=11)
-    plt.grid(True, alpha=0.3)
-    plt.tight_layout()
-    plt.savefig('scalability_test.png', dpi=150, bbox_inches='tight')
-    plt.show()
-    print("\n→ Grafik disimpan sebagai 'scalability_test.png'")
+    return results
 
 
 def main():
@@ -226,31 +188,49 @@ def main():
     print("  Linear Search: Iteratif vs Rekursif")
     print("=" * 60)
     
-    # Konfigurasi
-    DATA_SIZE = 1000  # Jumlah transaksi
+    # Input jumlah data dari user
+    print("\n" + "-" * 60)
+    print("KONFIGURASI DATA")
+    print("-" * 60)
+    while True:
+        try:
+            DATA_SIZE = int(input("Masukkan jumlah transaksi (N): "))
+            if DATA_SIZE <= 0:
+                print("→ Jumlah harus lebih dari 0!")
+                continue
+            break
+        except ValueError:
+            print("→ Input harus berupa angka!")
+    
     TEST_ITERATIONS = 100  # Jumlah iterasi untuk pengukuran performa
     
     # Generate data transaksi
     print(f"\n→ Generating {DATA_SIZE:,} data transaksi...")
     transactions = generate_transactions(DATA_SIZE)
-    print(f"→ Data transaksi berhasil di-generate!")
     
-    # Tampilkan sample data
+    # Shuffle/acak urutan data
+    random.shuffle(transactions)
+    
+    # Tampilkan array setelah diacak
     print("\n" + "-" * 60)
-    print("SAMPLE DATA TRANSAKSI (5 data pertama):")
+    print("List Array Acak ID Transaksi")
     print("-" * 60)
-    for i, t in enumerate(transactions[:5]):
-        print(f"{i+1}. {t.id} | {t.tanggal} | {t.jenis:6} | Rp {t.nominal:>15,.2f}")
+    for i, t in enumerate(transactions[:10]):
+        print(f"  [{i}] {t.id}")
+    if DATA_SIZE > 10:
+        print(f"  ... dan {DATA_SIZE - 10} data lainnya")
+    
+    print(f"\n→ Data transaksi berhasil di-generate dan diacak!")
     
     # Input ID transaksi yang dicari
     print("\n" + "-" * 60)
     print("PENCARIAN TRANSAKSI")
     print("-" * 60)
-    print(f"Contoh ID yang tersedia: {transactions[0].id}, {transactions[len(transactions)//2].id}, {transactions[-1].id}")
+    print(f"→ Rentang ID yang tersedia: TRX000001 - TRX{str(DATA_SIZE).zfill(6)}")
     
-    target_id = input("\nMasukkan ID Transaksi yang dicari: ").strip().upper()
+    target_id = input("\nMasukkan ID Transaksi yang dicari (contoh: TRX000001): ").strip().upper()
     if not target_id:
-        target_id = transactions[len(transactions)//2].id
+        target_id = f"TRX{str(DATA_SIZE//2).zfill(6)}"
         print(f"→ Menggunakan ID default: {target_id}")
     
     # Pencarian dengan kedua metode
@@ -271,20 +251,34 @@ def main():
     if (result_iterative is None) == (result_recursive is None):
         print("✓ Kedua metode menghasilkan hasil yang konsisten!")
     
-    # Ukur dan tampilkan performa
-    print("\n→ Mengukur performa (100 iterasi)...")
-    perf = measure_performance(transactions, target_id, TEST_ITERATIONS)
-    display_performance(perf, DATA_SIZE)
+    # Performance Comparison - input sizes dari user
+    print("\n" + "-" * 60)
+    print("KONFIGURASI PERFORMANCE COMPARISON")
+    print("-" * 60)
+    print("Masukkan ukuran data (N) untuk test performa.")
+    print("Pisahkan dengan koma, contoh: 10,20,100,1000,10000")
+    
+    while True:
+        try:
+            sizes_input = input("Masukkan sizes: ").strip()
+            sizes = [int(x.strip()) for x in sizes_input.split(",")]
+            if any(s <= 0 for s in sizes):
+                print("→ Semua angka harus lebih dari 0!")
+                continue
+            sizes.sort()
+            break
+        except ValueError:
+            print("→ Format salah! Gunakan angka dipisah koma, contoh: 10,20,100")
+    
+    print("\n→ Menjalankan Performance Comparison...")
+    results = run_performance_comparison(sizes)
+    
+    # Tampilkan tabel performa
+    display_performance_table(results)
     
     # Tampilkan grafik
     print("\n→ Membuat grafik perbandingan...")
-    plot_performance(perf, DATA_SIZE)
-    
-    # Scalability test (opsional)
-    run_scalability = input("\nJalankan Scalability Test? (y/n): ").strip().lower()
-    if run_scalability == 'y':
-        sizes = [100, 500, 1000, 2000, 3000, 5000]
-        plot_scalability_test(sizes)
+    plot_performance_comparison(results)
     
     print("\n" + "=" * 60)
     print("  AUDIT SELESAI - Terima kasih!")
@@ -292,4 +286,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\n\n→ Program Berhenti.")
+        exit(0)
