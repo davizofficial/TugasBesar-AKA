@@ -12,11 +12,13 @@ Program bertujuan untuk memverifikasi keberadaan satu ID Transaksi (Target) dan 
 
 ## Fitur
 
-- Generate data transaksi dummy untuk simulasi
+- Generate data transaksi dummy sesuai input user (N)
+- Data transaksi diacak secara random sebelum pencarian
 - Pencarian transaksi berdasarkan ID menggunakan Linear Search
 - Perbandingan performa antara metode Iteratif dan Rekursif
+- User dapat menentukan ukuran data untuk performance comparison
 - Visualisasi grafik perbandingan performa
-- Scalability test dengan berbagai ukuran data
+- Mendukung Ctrl+C untuk menghentikan program
 
 ## Struktur Data Transaksi
 
@@ -81,29 +83,67 @@ python bank_audit.py
 
 ## Alur Program
 
-1. Program generate 1000 data transaksi dummy
-2. Menampilkan sample 5 data transaksi pertama
-3. User memasukkan ID transaksi yang ingin dicari
-4. Program melakukan pencarian dengan kedua metode
-5. Menampilkan detail transaksi jika ditemukan
-6. Menampilkan tabel perbandingan performa
-7. Menampilkan grafik perbandingan
-8. Opsi untuk menjalankan scalability test
+1. User memasukkan jumlah data transaksi (N) yang ingin di-generate
+2. Program generate N data transaksi dummy dan mengacak urutannya
+3. Menampilkan list array acak ID transaksi (10 data pertama)
+4. Menampilkan rentang ID yang tersedia (TRX000001 - TRX00000N)
+5. User memasukkan ID transaksi yang ingin dicari
+6. Program melakukan pencarian dengan kedua metode (Iteratif & Rekursif)
+7. Menampilkan detail transaksi jika ditemukan
+8. User memasukkan ukuran data untuk performance comparison (pisahkan dengan koma, contoh: 10,20,100,1000,10000)
+9. Menampilkan tabel perbandingan performa
+10. Menampilkan grafik perbandingan performa
+
+## Contoh Output
+
+```
+============================================================
+  APLIKASI AUDIT TRANSAKSI KEUANGAN BANK
+  Linear Search: Iteratif vs Rekursif
+============================================================
+
+------------------------------------------------------------
+KONFIGURASI DATA
+------------------------------------------------------------
+Masukkan jumlah transaksi (N): 100
+
+→ Generating 100 data transaksi...
+
+------------------------------------------------------------
+List Array Acak ID Transaksi
+------------------------------------------------------------
+  [0] TRX000047
+  [1] TRX000023
+  [2] TRX000089
+  ...
+  ... dan 90 data lainnya
+
+→ Data transaksi berhasil di-generate dan diacak!
+
+------------------------------------------------------------
+PENCARIAN TRANSAKSI
+------------------------------------------------------------
+→ Rentang ID yang tersedia: TRX000001 - TRX000100
+
+Masukkan ID Transaksi yang dicari (contoh: TRX000001): TRX000050
+
++----------------------------------------------------------+
+|                PERFORMANCE COMPARISON                    |
++----------------------------------------------------------+
+|      n |   Waktu Rekursif (ms) |   Waktu Iteratif (ms) |
+|----------------------------------------------------------| 
+|     10 |             0.012345 |             0.010234 |
+|    100 |             0.123456 |             0.098765 |
+|   1000 |             1.234567 |             0.987654 |
++----------------------------------------------------------+
+```
 
 ## Hasil Perbandingan Performa
 
-### Grafik Perbandingan Performa
+### Grafik Performance Comparison
 ![Performance Comparison](performance_comparison.png)
 
-Grafik di atas menampilkan:
-- Bar chart rata-rata waktu eksekusi
-- Box plot distribusi waktu eksekusi
-- Line plot waktu eksekusi per iterasi
-
-### Grafik Scalability Test
-![Scalability Test](scalability_test.png)
-
-Grafik scalability test menunjukkan perbandingan waktu eksekusi kedua metode pada berbagai ukuran data (100, 500, 1000, 2000, 3000, 5000 transaksi).
+Grafik menunjukkan perbandingan waktu eksekusi kedua metode pada berbagai ukuran data yang diinput oleh user.
 
 ## Kesimpulan
 
